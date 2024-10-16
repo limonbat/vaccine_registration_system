@@ -1,0 +1,43 @@
+version: "3.7"
+services:
+    app-server:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: php
+        container_name: application
+        restart: unless-stopped
+        volumes:
+            - ./:/var/www/html:cached
+        ports:
+            - "8000:80"
+        environment:
+            - APACHE_DOCUMENT_ROOT=/var/www/html/public
+        networks:
+            - internal-network
+        depends_on:
+            - database-server
+
+
+    database-server:
+        image: mysql:5.7.36
+        container_name: database
+        restart: unless-stopped
+        ports:
+            - 7021:3306
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        environment:
+            - MYSQL_DATABASE=vaccine_registration_system
+            - MYSQL_USER=limon
+            - MYSQL_PASSWORD=369949
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+        command: ["mysqld", "--skip-grant-tables"]
+        networks:
+            - internal-network
+
+networks:
+    internal-network:
+        driver: bridge
